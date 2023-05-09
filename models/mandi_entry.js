@@ -11,7 +11,7 @@ const schema = mongoose.Schema({
     },
     cropname : {
         type : String,
-        required : true
+        // required : true
     },
     quantity : {
         type : Number,
@@ -24,6 +24,9 @@ const schema = mongoose.Schema({
     highprice : {
         type : Number,
         deafult : 0
+    },
+    img : {
+        type : String,
     }
 })
 

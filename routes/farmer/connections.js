@@ -85,8 +85,19 @@ router.post('/getconsultant' , async(req,res) => {
                  }
             }
         ])
+        let consultantname = []
+        let consultantid = []
+        for(let i = 0 ; i < consultants.length ; i++)
+        {
+            consultantname.push(consultants[i].consultants[0].firstName)
+            consultantid.push(consultants[i].consultants[0]._id.toString())
+        }
+        // console.log(consultants[0].consultants[0]._id)
+        console.log(consultantid)
+        console.log(consultantname)
         res.status(200).json({
-            "data" : consultants,
+            "names" : consultantname,
+            "ids"   : consultantid,
             "success" : true
         })
     }

@@ -5,6 +5,7 @@ const router = express.Router()
 const workflow = require('../../models/workflow')
 const Forms = require('../../models/form')
 const Responses = require('../../models/responses')
+const crops = require('../../models/crop')
 router.post('/getmyworkflow' , async (req,res) => {
     const cropid = req.body.cropid
     console.log('request sent')
@@ -20,8 +21,12 @@ router.post('/getmyworkflow' , async (req,res) => {
     {
         try{
             const response = await workflow.findOne({"cropid" : mongoose.Types.ObjectId(cropid)})
+            const crop = await crops.findOne({_id : cropid})
             // // console.log(response.cropid)
-            const formid = response.stages[response.curstage].formId
+            if(response.curstage != response.stages.length)
+            {
+                const formid = response.stages[response.curstage].formId
+            }
             const date = new Date()
             let day = date.getDate()
             let month = date.getMonth()
@@ -32,7 +37,17 @@ router.post('/getmyworkflow' , async (req,res) => {
             let year = date.getFullYear()
             let totaldate = `${year}-${month}-${day}`
             const resforms = await Responses.find({submitteddate : totaldate})
-            if(resforms.length == 0)
+            if(response.curstage == response.stages.length)
+            {
+                res.status(200).json({
+                    "success" : true,
+                    "workflowInstance" : {
+                        "workflow" : response,
+                    },
+                    "img" : crop.img
+                })
+            }
+            else if(resforms.length == 0)
             {
                 try{
                     const form = await Forms.findOne({"_id" : mongoose.Types.ObjectId(formid)})
@@ -41,8 +56,9 @@ router.post('/getmyworkflow' , async (req,res) => {
                         "workflowInstance" : {
                             "workflow" : response,
                             "form" : form,
-                            "submitted" : false
-                        }
+                            "submitted" : false,
+                        },
+                        "img" : crop.img
                     })
                 }catch(e){
 
@@ -55,7 +71,8 @@ router.post('/getmyworkflow' , async (req,res) => {
                     "workflowInstance" : {
                         "workflow" : response,
                         "submitted" : true
-                    }
+                    },
+                    "img" : crop.img
                 })
             }
             

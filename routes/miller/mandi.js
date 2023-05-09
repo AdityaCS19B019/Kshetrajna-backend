@@ -3,16 +3,17 @@ const mongoose = require('mongoose')
 const router = express.Router()
 const mandi = require('../../models/mandi_entry')
 
-router.get('/' , async (req,res) => {
+router.post('/' , async (req,res) => {
     const response = await mandi.find()
     res.status(200).json({
-        data : response,
+        products : response,
         success : true
     })
 })
 
 router.put('/pitchprice' , async(req,res)=>{
     const cropid = req.body.cropid
+    const newprice = req.body.newprice
     if(cropid == null)
     {
         res.status(400).json({
@@ -22,7 +23,27 @@ router.put('/pitchprice' , async(req,res)=>{
     }
     else
     {
-        let res 
+        try{
+            const resp = mandi.findOneAndUpdate(
+                {
+                    cropid : mongoose.Types.ObjectId(cropid)
+                },
+                {
+                    highprice : newprice
+                },
+                {
+                    new : true
+                }
+            )
+            res.status(201).json({
+                "success": true
+            })
+        }catch(e){
+            res.status(201).json({
+                "success": false,
+                "error" : "failed updating"
+            })
+        }
     }
 })
 
