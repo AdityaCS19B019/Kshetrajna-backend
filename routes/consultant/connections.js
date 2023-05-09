@@ -5,15 +5,39 @@ const { findOneAndUpdate } = require('../../models/consultant')
 const { default: mongoose } = require('mongoose')
 const router = express.Router()
 
-router.get('/requests' , async (req , res) => {
-    // let reciever = req.body.reciever
-    try{
-        let requests = await Requests.find({reciever : reciever})
-        res.status(200).json({req:requests,message:"True"})
-    }catch(e)
+router.post('/requests' , async (req , res) => {
+    let reciever = req.body.receiver
+    if(reciever == null)
     {
-        console.log("error")
-        res.send(requests)
+        res.status(400).json({
+            "error" : "missed paramters",
+            "success" : "false"
+        })
+    }
+    else
+    {
+        try{
+            // let requests = await Requests.find({receiver : mongoose.Types.ObjectId(req.body.receiver)})
+            const requests = await Requests.aggregate([
+                {
+                    $match : {receiver : mongoose.Types.ObjectId(req.body.receiver) , status : "pending"},
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "sender",    // field in the orders collection
+                        foreignField: "_id",  // field in the items collection
+                        as: "farmers"
+                     }
+                }
+            ])
+            res.status(200).json({requests :requests,success:"true"})
+        }catch(e)
+        {
+            console.log(e)
+            res.send("Error while fetching")
+            // res.send(requests)
+        }
     }
 })
 
@@ -50,7 +74,7 @@ router.post('/acceptrequest' , async(req,res)=>{
             let newcon = await con1.save()
             let newcon2 = await con2.save()
             let oldreq = await Requests.findOneAndUpdate({
-                                                            reciever : receiver ,
+                                                            receiver : receiver ,
                                                             sender : sender
                                                         } , 
                                                         { 
